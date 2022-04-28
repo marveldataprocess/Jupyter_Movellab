@@ -1,20 +1,10 @@
-# qgrid - maintained
+# Movellab Spreadsheet
 
-A Clone of QGrid to Make Small Changes to keep it working with JupyterLab 3.0 and beyond
+Movellab Spreadsheet is a successor of discontinued Qgrid with added support to JupyterLab and 
+enhanced UI.  
 
-This repo is a clone of [Qgrid] (https://github.com/quantopian/qgrid)
-
-It does not appear qgrid is updated anymore, and with that, I had a hard time getting it to work with the new ipywidgets package. 
-
-I faced a challenge, keep ipywidgets on older versions or don't use qgrid, and since  I haven't found something to replace qgrid in my Jupyter Integrations, I decided to try to fix qgrud for Jupyter Lab
-
-Essentially, I hacked my way into it, followed the Jupyterlab Extension docs, and made some changes. In it's current form it works.  
-
-You CAN submit issues to this, but I can already say, I am not a Javascript expert, and if you have an issue, you may wait a bit.  My main goal is to get something that will continue to work with JupyterLab as upgrades happen. 
-
-If we get good PRs and updates from the community, I absolutely will merge them. 
-
-Thanks!
+Our plan is to add more "Excel" like features to enable "low code/no code" users to benefit from 
+the computation power of Python and Jupyter ecosystem. 
 
 ## Install
 ---------
@@ -36,11 +26,6 @@ Note: I did not require Node JS to get this working, just the commands above mad
 # Old Pre Late-October 2021 Quantopian Qgrid README:
 
 
-.. image:: https://media.quantopian.com/logos/open_source/qgrid-logo-03.png
-    :target: https://qgrid.readthedocs.io
-    :width: 190px
-    :align: center
-    :alt: qgrid
 
 =====
 qgrid
