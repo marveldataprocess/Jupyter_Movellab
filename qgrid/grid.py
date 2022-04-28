@@ -1,7 +1,9 @@
 import ipywidgets as widgets
-import pandas as pd
+import modin.pandas as pd
+import pandas
 import numpy as np
 import json
+import warnings
 
 from types import FunctionType
 from IPython.display import display
@@ -26,11 +28,11 @@ from six import string_types
 # when calling the 'to_json' function on DataFrames.  to get around this we
 # have our own copy of the panda's 0.20.0 implementation that we use for old
 # versions of pandas.
-from distutils.version import LooseVersion
-if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
-    import pandas.io.json as pd_json
-else:
-    from . import pd_json
+# from distutils.version import LooseVersion
+# if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
+#    import pandas.io.json as pd_json
+# else:
+#    from . import pd_json
 
 
 class _DefaultSettings(object):
@@ -66,7 +68,7 @@ class _DefaultSettings(object):
             'toolTip': "",
             'width': None
         }
-        self._show_toolbar = False
+        self._show_toolbar = True
         self._precision = None  # Defer to pandas.get_option
 
     def set_grid_option(self, optname, optvalue):
@@ -93,7 +95,7 @@ class _DefaultSettings(object):
 
     @property
     def precision(self):
-        return self._precision or pd.get_option('display.precision') - 1
+        return 6
 
     @property
     def column_options(self):
@@ -846,10 +848,10 @@ class QgridWidget(widgets.DOMWidget):
         self.send({'type': 'change_show_toolbar'})
 
     def _update_table(self,
-                      update_columns=False,
-                      triggered_by=None,
-                      scroll_to_row=None,
-                      fire_data_change_event=True):
+        update_columns=False,
+        triggered_by=None,
+        scroll_to_row=None,
+        fire_data_change_event=True):
         df = self._df.copy()
 
         from_index = max(self._viewport_range[0] - PAGE_SIZE, 0)
@@ -957,10 +959,11 @@ class QgridWidget(widgets.DOMWidget):
         else:
             self._row_styles = {}
 
-        df_json = pd_json.to_json(None, df,
-                                  orient='table',
-                                  date_format='iso',
-                                  double_precision=self.precision)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=UserWarning)
+            df_json = df.to_json(
+               None, orient="table", date_format="iso", double_precision=self.precision
+        )
 
         if update_columns:
             self._interval_columns = []
@@ -1614,15 +1617,13 @@ class QgridWidget(widgets.DOMWidget):
             The method for removing a row (or rows).
         """
         if row is None:
-            added_index = self._duplicate_last_row()
+            added_index = self._add_empty_row()
         else:
-            added_index = self._add_row(row)
+            added_index = self._add_empty_row()
 
-        self._notify_listeners({
-            'name': 'row_added',
-            'index': added_index,
-            'source': 'api'
-        })
+        self._notify_listeners(
+            {"name": "row_added", "index": added_index, "source": "api"}
+        )
 
     def _duplicate_last_row(self):
         """
@@ -1650,6 +1651,21 @@ class QgridWidget(widgets.DOMWidget):
         self._update_table(triggered_by='add_row',
                            scroll_to_row=df.index.get_loc(last.name))
         return last.name
+
+    def _add_empty_row(self):
+        print("add empty row")
+        print(self._selected_rows)
+        df = self._df
+        df1 = pd.DataFrame([[np.nan] * len(df.columns)], columns=df.columns)
+        print("step 2")
+        df2 = df1.append(df, ignore_index=True)
+        self._df = df2
+        print(df2.shape)
+
+        self._update_table(
+            triggered_by="add_row", scroll_to_row=1
+        )
+        return 1
 
     def _add_row(self, row):
         """
